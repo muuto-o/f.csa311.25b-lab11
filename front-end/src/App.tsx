@@ -1,12 +1,12 @@
-import React from 'react';
-import './App.css'; // import the css file to enable your styles.
-import { GameState, Cell } from './game';
-import BoardCell from './Cell';
+import React from "react";
+import "./App.css"; // import the css file to enable your styles.
+import { GameState, Cell } from "./game";
+import BoardCell from "./Cell";
 
 /**
  * Define the type of the props field for a React component
  */
-interface Props { }
+interface Props {}
 
 /**
  * Using generics to specify the type of props and state.
@@ -14,11 +14,11 @@ interface Props { }
  * React will keep track of the value of props and state.
  * Any time there's a change to their values, React will
  * automatically update (not fully re-render) the HTML needed.
- * 
+ *
  * props and state are similar in the sense that they manage
  * the data of this component. A change to their values will
  * cause the view (HTML) to change accordingly.
- * 
+ *
  * Usually, props is passed and changed by the parent component;
  * state is the internal value of the component and managed by
  * the component itself.
@@ -30,11 +30,11 @@ class App extends React.Component<Props, GameState> {
    * @param props has type Props
    */
   constructor(props: Props) {
-    super(props)
+    super(props);
     /**
      * state has type GameState as specified in the class inheritance.
      */
-    this.state = { cells: [] }
+    this.state = { cells: [], currentPlayer: "", winner: "" };
   }
 
   /**
@@ -43,49 +43,60 @@ class App extends React.Component<Props, GameState> {
    * just an issue of Javascript.
    */
   newGame = async () => {
-    const response = await fetch('/newgame');
+    const response = await fetch("/newgame");
     const json = await response.json();
-    this.setState({ cells: json['cells'] });
-  }
+    this.setState({
+      cells: json["cells"],
+      currentPlayer: json["currentPlayer"],
+      winner: json["winner"],
+    });
+  };
 
   /**
    * play will generate an anonymous function that the component
    * can bind with.
-   * @param x 
-   * @param y 
-   * @returns 
+   * @param x
+   * @param y
+   * @returns
    */
   play(x: number, y: number): React.MouseEventHandler {
     return async (e) => {
       // prevent the default behavior on clicking a link; otherwise, it will jump to a new page.
       e.preventDefault();
-      const response = await fetch(`/play?x=${x}&y=${y}`)
+      const response = await fetch(`/play?x=${x}&y=${y}`);
       const json = await response.json();
-      this.setState({ cells: json['cells'] });
-    }
+      this.setState({
+        cells: json["cells"],
+        currentPlayer: json["currentPlayer"],
+        winner: json["winner"],
+      });
+    };
   }
+
+  undo = async () => {
+    const response = await fetch("/undo");
+    const json = await response.json();
+    this.setState({ cells: json["cells"] });
+  };
 
   createCell(cell: Cell, index: number): React.ReactNode {
     if (cell.playable)
-      /**
-       * key is used for React when given a list of items. It
-       * helps React to keep track of the list items and decide
-       * which list item need to be updated.
-       * @see https://reactjs.org/docs/lists-and-keys.html#keys
-       */
       return (
-        <div key={index}>
-          <a href='/' onClick={this.play(cell.x, cell.y)}>
-            <BoardCell cell={cell}></BoardCell>
-          </a>
+        <div
+          key={index}
+          className={`cell-container ${cell.playable ? "playable" : ""}`}
+          onClick={this.play(cell.x, cell.y)}
+        >
+          <BoardCell cell={cell}></BoardCell>
         </div>
-      )
+      );
     else
       return (
-        <div key={index}><BoardCell cell={cell}></BoardCell></div>
-      )
+        <div key={index} className="cell-container">
+          <BoardCell cell={cell}></BoardCell>
+        </div>
+      );
   }
-
   /**
    * This function will call after the HTML is rendered.
    * We update the initial state by creating a new game.
@@ -114,14 +125,39 @@ class App extends React.Component<Props, GameState> {
      * @see https://reactjs.org/docs/introducing-jsx.html
      */
     return (
-      <div>
-        <div id="board">
-          {this.state.cells.map((cell, i) => this.createCell(cell, i))}
+      <div className="app-container">
+        <div className="header">
+          <h1>Tic-Tac-Toe</h1>
+          <div className="status">
+            {this.state.winner ? (
+              <div className="winner-message">
+                <span className="winner-text">Winner:</span>
+                <span className="winner-name">{this.state.winner}</span>
+                <div className="confetti">🎉</div>
+              </div>
+            ) : (
+              <div className="turn-message">
+                <span>Current Turn:</span>
+                <span className="player-name">{this.state.currentPlayer}</span>
+              </div>
+            )}
+          </div>
         </div>
-        <div id="bottombar">
-          <button onClick={/* get the function, not call the function */this.newGame}>New Game</button>
+
+        <div className="board-container">
+          <div className="board">
+            {this.state.cells.map((cell, i) => this.createCell(cell, i))}
+          </div>
+        </div>
+
+        <div className="controls">
+          <button onClick={this.newGame} className="control-button new-game">
+            New Game
+          </button>
           {/* Exercise: implement Undo function */}
-          <button>Undo</button>
+          <button onClick={this.undo} className="control-button undo">
+            Undo
+          </button>
         </div>
       </div>
     );
