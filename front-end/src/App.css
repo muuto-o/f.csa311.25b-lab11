@@ -194,9 +194,25 @@ body {
   background: linear-gradient(135deg, #636e72 0%, #b2bec3 100%);
 }
 
+:disabled {
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.4);
+}
+
+:disabled:hover {
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.4);
+}
+
 .undo:hover {
   background: linear-gradient(135deg, #b2bec3 0%, #636e72 100%);
-  transform: translateY(-2px);
+}
+
+.undo.disabled:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.4);
 }
 
 /* Responsive adjustments for smaller screens */
